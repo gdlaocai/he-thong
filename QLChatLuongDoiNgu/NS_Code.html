@@ -1,0 +1,348 @@
+/**
+ * DỰ ÁN QUẢN LÝ CHẤT LƯỢNG ĐỘI NGŨ
+ * Phiên bản: Tích hợp Minh chứng Link (Cột AH)
+ */
+
+// (Các hằng số ID đã được chuyển sang QLNS_CauHinh.gs để bảo mật)
+
+function doGet(e) {
+  return ContentService.createTextOutput("Hệ thống API đang hoạt động!").setMimeType(ContentService.MimeType.TEXT);
+}
+
+function doPost(e) {
+  try {
+    var tsos = JSON.parse(e.postData.contents);
+    var lenh = tsos.lenh;
+    var kqra;
+
+    if (lenh === "dangNhapHt") {
+      kqra = dangNhapHt(tsos.gMai);
+    } else if (lenh === "layTatCaDl") {
+      kqra = { tCong: true, dLieu: layTatCaDl(tsos.locNam) };
+    } else if (lenh === "luuNsu") {
+      kqra = luuNsu(tsos.dlForm, tsos.tKhoan, tsos.vTro, tsos.tenn);
+    } else if (lenh === "luuNhieuNsu") {
+      kqra = luuNhieuNsu(tsos.mangDl, tsos.tKhoan, tsos.vTro, tsos.tenn);
+    } else if (lenh === "luuDgia") {
+      kqra = luuDgia(tsos.mso, tsos.nam, tsos.ngaysinh, tsos.dlDgia, tsos.vTro, tsos.tenn);
+    } else if (lenh === "luuNhieuDgia") {
+      kqra = luuNhieuDgia(tsos.mangDl, tsos.vTro, tsos.tenn);
+    } else if (lenh === "xoaNsu") {
+      kqra = xoaNsu(tsos.nam, tsos.mso, tsos.ngaysinh, tsos.tKhoan, tsos.vTro);
+    } else {
+      kqra = { tCong: false, tBao: "Lệnh API không hợp lệ!" };
+    }
+
+    return ContentService.createTextOutput(JSON.stringify(kqra)).setMimeType(ContentService.MimeType.JSON);
+  } catch (loie) {
+    return ContentService.createTextOutput(JSON.stringify({ tCong: false, tBao: "Lỗi Server: " + loie.message })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function moBangAnt(idb, ten) {
+  if (!idb) throw new Error("Chưa có ID cho file " + ten);
+  try { return SpreadsheetApp.openById(idb.trim()); } 
+  catch (loie) { throw new Error("Lỗi mở file '" + ten + "'."); }
+}
+
+function damBaoCot(trang, socotyc) {
+  var cotmax = trang.getMaxColumns();
+  if (cotmax < socotyc) trang.insertColumnsAfter(cotmax, socotyc - cotmax);
+}
+
+function dangNhapHt(gMai) {
+  var taiKhoanTruyCap = String(gMai).trim().toLowerCase();
+  if (!taiKhoanTruyCap) return { tCong: false, tBao: "Lỗi: Không nhận định dạng được tài khoản từ hệ thống." };
+
+  const btap = moBangAnt(idKbao, "ThietLap");
+  const trang = btap.getSheetByName("ThietLap"); 
+  if (!trang) return { tCong: false, tBao: "Lỗi: Không tìm thấy dữ liệu cấu hình tại ThietLap." };
+
+  const dcuoi = trang.getLastRow();
+  if (dcuoi < 2) return { tCong: false, tBao: "Hệ thống chưa có dữ liệu danh sách tài khoản." };
+  
+  const dlb = trang.getRange(2, 1, dcuoi - 1, 3).getDisplayValues(); 
+
+  var ndtim = null;
+  for (var i = 0; i < dlb.length; i++) {
+    var cotA_TaiKhoan = String(dlb[i][0]).trim().toLowerCase(); 
+    
+    if (cotA_TaiKhoan === "") continue;
+    
+    if (cotA_TaiKhoan === taiKhoanTruyCap) {
+      var cotB_Ten = String(dlb[i][1]).trim(); 
+      var cotC_Quyen = String(dlb[i][2]).trim().toLowerCase(); 
+      
+      var vTro = 'xem'; 
+      
+      if (cotC_Quyen === 'xx') {
+        vTro = 'qtriv'; 
+      } else if (cotC_Quyen === 'x') {
+        vTro = 'ngdung'; 
+      }
+      
+      ndtim = { 
+        tenn: cotB_Ten ? cotB_Ten : taiKhoanTruyCap, 
+        vTro: vTro, 
+        tKhoan: taiKhoanTruyCap 
+      };
+      break;
+    }
+  }
+  
+  if (ndtim) return { tCong: true, dLieu: ndtim };
+  else return { tCong: false, tBao: "Tài khoản của bạn chưa được cấp quyền truy cập hệ thống nhà trường!" };
+}
+
+function layTatCaDl(locNam) {
+  var dlchinh = []; var dsnsu = [];
+  try {
+    var bkb = moBangAnt(idKbao, "KHAIBAO");
+    var tkb = bkb.getSheetByName("KHAIBAO");
+    if (tkb) {
+      var dckb = tkb.getLastRow();
+      if (dckb >= 5) {
+        damBaoCot(tkb, 13);
+        dlchinh = tkb.getRange(5, 1, dckb - 4, 13).getDisplayValues();
+      }
+    }
+  } catch (loie) { console.error(loie); }
+
+  var bns = moBangAnt(idNsu, "NHANSU");
+  var tns = bns.getSheetByName("NHANSU"); 
+  damBaoCot(tns, 34); 
+  var dcns = tns.getLastRow();
+  if (dcns >= 5) dsnsu = tns.getRange(5, 1, dcns - 4, 34).getDisplayValues(); 
+
+  if (locNam && locNam !== "") dsnsu = dsnsu.filter(function(dong) { return dong[0] == locNam; });
+  return { chinh: dlchinh, nsu: dsnsu };
+}
+
+function chuanHoaNgay(d) {
+  if (!d) return "";
+  var s = String(d).trim();
+  var parts = s.split('/');
+  if (parts.length === 3) {
+    var day = parseInt(parts[0], 10);
+    var month = parseInt(parts[1], 10);
+    var year = parts[2].trim();
+    return (day < 10 ? "0" + day : day) + '/' + (month < 10 ? "0" + month : month) + '/' + year;
+  }
+  return s;
+}
+
+function timDong(dsdl, nam, mso, ngaysinh) {
+  var nsNorm = chuanHoaNgay(ngaysinh);
+  for (var i = 0; i < dsdl.length; i++) {
+    var isNam = String(dsdl[i][0]).trim() === String(nam).trim();
+    var isMso = String(dsdl[i][1]).trim() === String(mso).trim();
+    
+    if (isNam && isMso) {
+      var isDate2 = chuanHoaNgay(dsdl[i][2]) === nsNorm;
+      var isDate3 = chuanHoaNgay(dsdl[i][3]) === nsNorm;
+      if (isDate2 || isDate3) return i; 
+    }
+  }
+  return -1;
+}
+
+function luuNsu(dlForm, tKhoan, vTro, tenn) {
+  if (vTro !== 'qtriv' && vTro !== 'ngdung') return { tCong: false, tBao: "Không có quyền thực hiện!" };
+  if (vTro === 'ngdung') {
+    var tenTrongForm = String(dlForm[1] || "").trim().toLowerCase();
+    var tenTaiKhoan = String(tenn || "").trim().toLowerCase();
+    if (tenTrongForm !== tenTaiKhoan) {
+        return { tCong: false, tBao: "Bạn chỉ được phép chỉnh sửa hồ sơ của chính mình!" };
+    }
+  }
+
+  const bns = moBangAnt(idNsu, "NHANSU");
+  const tns = bns.getSheetByName("NHANSU");
+  damBaoCot(tns, 34); 
+  
+  const inNam = (dlForm[34] !== undefined && dlForm[34] !== "") ? dlForm[34] : dlForm[0];
+  const inMso = (dlForm[35] !== undefined && dlForm[35] !== "") ? dlForm[35] : dlForm[1];
+  const inNgaySinh = (dlForm[36] !== undefined && dlForm[36] !== "") ? dlForm[36] : dlForm[2];
+
+  const dcns = tns.getLastRow();
+  var dlsan = [];
+  if (dcns >= 5) dlsan = tns.getRange(5, 1, dcns - 4, 4).getDisplayValues();
+
+  var cso = timDong(dlsan, inNam, inMso, inNgaySinh);
+  
+  var dlghi = dlForm.slice(0, 17);
+  if (cso !== -1) {
+    if (vTro === 'ngdung' && inNam !== dlForm[0]) {
+         return { tCong: false, tBao: "Bạn không có quyền chuyển đổi năm học!" };
+    }
+    
+    var dongt = cso + 5;
+    tns.getRange(dongt, 1, 1, 17).setValues([dlghi]);
+    return { tCong: true, tBao: "Đã cập nhật dữ liệu năm " + dlForm[0] + "!" };
+  } else {
+    if (vTro === 'ngdung') return { tCong: false, tBao: "Bạn không có quyền thêm mới hồ sơ!" };
+
+    var dongmoi = Math.max(tns.getLastRow() + 1, 5);
+    tns.getRange(dongmoi, 1, 1, 17).setValues([dlghi]);
+    return { tCong: true, tBao: "Đã thêm mới hồ sơ năm " + dlForm[0] + "!" };
+  }
+}
+
+function luuNhieuNsu(mangDl, tKhoan, vTro, tenn) {
+  if (vTro !== 'qtriv' && vTro !== 'ngdung') return { tCong: false, tBao: "Không có quyền thực hiện!" };
+
+  const bns = moBangAnt(idNsu, "NHANSU");
+  const tns = bns.getSheetByName("NHANSU");
+  damBaoCot(tns, 34); 
+
+  if (!mangDl || mangDl.length === 0) return { tCong: true, tBao: "Không có dữ liệu." };
+
+  const dcns = tns.getLastRow();
+  var dlsan = [];
+  if (dcns >= 5) dlsan = tns.getRange(5, 1, dcns - 4, 4).getDisplayValues();
+
+  var loiXayRa = false;
+
+  mangDl.forEach(function(dlForm) {
+    if (vTro === 'ngdung') {
+        var tenTrongForm = String(dlForm[1] || "").trim().toLowerCase();
+        var tenTaiKhoan = String(tenn || "").trim().toLowerCase();
+        if (tenTrongForm !== tenTaiKhoan) {
+            loiXayRa = true; return; 
+        }
+    }
+
+    var searchNam = (dlForm[34] !== undefined && dlForm[34] !== "") ? dlForm[34] : dlForm[0];
+    var searchMso = (dlForm[35] !== undefined && dlForm[35] !== "") ? dlForm[35] : dlForm[1];
+    var searchNgay = (dlForm[36] !== undefined && dlForm[36] !== "") ? dlForm[36] : dlForm[2];
+    
+    var cso = timDong(dlsan, searchNam, searchMso, searchNgay);
+  
+    var dlghi = dlForm.slice(0, 17);
+
+    if (cso !== -1) {
+      if (vTro === 'ngdung' && searchNam !== dlForm[0]) { loiXayRa = true; return; }
+      var dongt = cso + 5;
+      tns.getRange(dongt, 1, 1, 17).setValues([dlghi]);
+    } else {
+      if (vTro === 'ngdung') { loiXayRa = true; return; }
+      var dcmoi = tns.getLastRow(); 
+      var dongmoi = Math.max(dcmoi + 1, 5);
+      tns.getRange(dongmoi, 1, 1, 17).setValues([dlghi]);
+      dlsan.push([dlForm[0], dlForm[1], dlForm[2], ""]); 
+    }
+  });
+  
+  if (loiXayRa) return { tCong: false, tBao: "Một số bản ghi không được lưu do bạn không đủ quyền!" };
+  return { tCong: true, tBao: "Đã xử lý xong " + mangDl.length + " bản ghi!" };
+}
+
+function luuDgia(mso, nam, ngaysinh, dlDgia, vTro, tenn) {
+  if (vTro !== 'qtriv' && vTro !== 'ngdung') return { tCong: false, tBao: "Không có quyền thực hiện!" };
+
+  const bns = moBangAnt(idNsu, "NHANSU");
+  const tns = bns.getSheetByName("NHANSU");
+  damBaoCot(tns, 34); 
+
+  const dcns = tns.getLastRow();
+  if (dcns < 5) return { tCong: false, tBao: "Chưa có dữ liệu." };
+
+  const dlab = tns.getRange(5, 1, dcns - 4, 4).getDisplayValues(); 
+  var cso = timDong(dlab, nam, mso, ngaysinh);
+
+  if (cso === -1) return { tCong: false, tBao: "Không tìm thấy hồ sơ liên quan." };
+  
+  // BẮT ĐẦU: Ràng buộc quyền giáo viên khi lưu đánh giá
+  if (vTro === 'ngdung') {
+    var tenTaiKhoan = String(tenn || "").trim().toLowerCase();
+    var tenTrongDSDangTim = String(dlab[cso][1] || "").trim().toLowerCase(); // Lấy tên từ hồ sơ tìm được
+    if (tenTrongDSDangTim !== tenTaiKhoan) {
+        return { tCong: false, tBao: "Bạn chỉ được phép chỉnh sửa đánh giá của chính mình!" };
+    }
+  }
+  // KẾT THÚC
+
+  var dongt = cso + 5;
+  
+  if(Array.isArray(dlDgia) && dlDgia.length >= 8) {
+      var mDgia = dlDgia.slice(0, 8);
+      tns.getRange(dongt, 18, 1, 8).setValues([mDgia]);
+      
+      if(dlDgia.length > 16) { 
+          tns.getRange(dongt, 34, 1, 1).setValue(dlDgia[16]);
+      }
+  }
+
+  return { tCong: true, tBao: "Đã lưu kết quả!" };
+}
+
+function luuNhieuDgia(mangDl, vTro, tenn) {
+  if (vTro !== 'qtriv' && vTro !== 'ngdung') return { tCong: false, tBao: "Không có quyền thực hiện!" };
+
+  const bns = moBangAnt(idNsu, "NHANSU");
+  const tns = bns.getSheetByName("NHANSU");
+  damBaoCot(tns, 34); 
+
+  if (!mangDl || mangDl.length === 0) return { tCong: true, tBao: "Không có dữ liệu." };
+
+  const dcns = tns.getLastRow();
+  var dlsan = [];
+  if (dcns >= 5) dlsan = tns.getRange(5, 1, dcns - 4, 4).getDisplayValues();
+
+  var dem = 0;
+  var loiXayRa = false;
+
+  mangDl.forEach(function(dong) {
+    var inNam = dong[0];
+    var inMso = dong[1];
+    var inNgaySinh = dong[2]; 
+    
+    var mDgia = dong.slice(17, 25);
+    var mLink = dong[33] || "";
+    
+    var cso = timDong(dlsan, inNam, inMso, inNgaySinh);
+
+    if (cso !== -1) {
+       // BẮT ĐẦU: Ràng buộc quyền khi cập nhật nhiều đánh giá
+       if (vTro === 'ngdung') {
+           var tenTrongForm = String(dong[1] || "").trim().toLowerCase();
+           var tenTaiKhoan = String(tenn || "").trim().toLowerCase();
+           if (tenTrongForm !== tenTaiKhoan) {
+               loiXayRa = true; return; 
+           }
+       }
+       // KẾT THÚC
+       
+       var dongt = cso + 5;
+       tns.getRange(dongt, 18, 1, 8).setValues([mDgia]);
+       tns.getRange(dongt, 34, 1, 1).setValue(mLink);
+       dem++;
+    }
+  });
+
+  if (loiXayRa) return { tCong: false, tBao: "Một số bản ghi không được lưu do bạn không đủ quyền!" };
+  return { tCong: true, tBao: "Đã cập nhật " + dem + " hồ sơ!" };
+}
+
+function xoaNsu(nam, mso, ngaysinh, tKhoan, vTro) {
+  if (vTro !== 'qtriv') {
+      return { tCong: false, tBao: "Lỗi bảo mật: Bạn không có quyền xóa hồ sơ này!" };
+  }
+
+  const bns = moBangAnt(idNsu, "NHANSU");
+  const tns = bns.getSheetByName("NHANSU");
+
+  const dcns = tns.getLastRow();
+  if (dcns < 5) return { tCong: false, tBao: "Không có dữ liệu để xóa." };
+
+  const dlsan = tns.getRange(5, 1, dcns - 4, 4).getDisplayValues(); 
+  var cso = timDong(dlsan, nam, mso, ngaysinh);
+
+  if (cso !== -1) {
+    var dongt = cso + 5;
+    tns.deleteRow(dongt);
+    return { tCong: true, tBao: "Đã xóa thành công!" };
+  } else {
+    return { tCong: false, tBao: "Không tìm thấy dữ liệu để xóa!" };
+  }
+}

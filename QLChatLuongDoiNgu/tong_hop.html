@@ -1,0 +1,242 @@
+<style>
+  .o-chua-ghi-chu { position: relative; }
+  .goc-do-ghi-chu {
+      position: absolute; top: 0; right: 0; width: 0; height: 0;
+      border-top: 12px solid #009900; border-left: 12px solid transparent;
+      cursor: pointer; z-index: 10;
+  }
+  .danh-sach-ten-hover {
+      display: none; background-color: #ffffff !important; 
+      border: 1px solid #868e96 !important; box-shadow: 0 6px 16px rgba(0,0,0,0.25) !important;
+      padding: 8px 12px; border-radius: 4px; white-space: nowrap; text-align: left;
+      color: #212529; font-size: 13px; line-height: 1.5; font-weight: normal;
+      max-height: 50vh; overflow-y: auto;
+  }
+</style>
+
+<div class="tab-pane fade" id="muc3">
+  <div class="d-flex flex-wrap align-items-center justify-content-between mb-2 gap-2">
+      <div class="input-group" style="width: auto; min-width: 250px;">
+          <span class="input-group-text bg-white"><i class="fas fa-filter text-primary"></i></span>
+          <select id="nhapLocN3" class="form-select" onchange="veTke()">
+              <option value="">Tất cả năm học</option>
+          </select>
+          <button class="btn btn-primary" onclick="veTke()"><i class="fas fa-search"></i></button>
+      </div>
+      <ul class="nav nav-pills" id="mangChonTke" role="tablist">
+         <li class="nav-item me-1"><button class="nav-link active py-1" data-bs-toggle="pill" data-bs-target="#m3Phan1" type="button">3.1. Tổng hợp nhân sự</button></li>
+         <li class="nav-item"><button class="nav-link py-1" data-bs-toggle="pill" data-bs-target="#m3Phan2" type="button">3.2. Kết quả đánh giá</button></li>
+      </ul>
+  </div>
+
+  <div class="tab-content" id="vungChuaTke">
+     <div class="tab-pane fade show active" id="m3Phan1">
+        <div class="theTke">
+           <h6 class="tdeTke"><i class="fas fa-users"></i> 3.1. TỔNG HỢP nhân sự</h6>
+           <div class="table-responsive">
+             <table class="table table-bordered table-sm text-center table-hover bangTchinh" id="bangTkeNs">
+               <thead>
+                 <tr>
+                   <th rowspan="2" style="vertical-align: middle;">Năm học</th><th rowspan="2" style="vertical-align: middle;">Tổng số</th><th rowspan="2" style="vertical-align: middle;">Nữ</th><th rowspan="2" style="vertical-align: middle;">Dâ&#8203;n tộ&#8203;c</th><th rowspan="2" style="vertical-align: middle;">Nữ DT</th><th rowspan="2" style="vertical-align: middle;">Đả&#8203;ng viê&#8203;n</th><th rowspan="2" style="vertical-align: middle;">Nữ ĐV</th><th rowspan="2" style="vertical-align: middle;">ĐV DT</th>
+                   <th colspan="3">Vị trí việc làm</th><th colspan="5">Trình độ chuyên môn</th><th colspan="5">Hạng chức danh nghề nghiệp</th><th colspan="3">Lý luận chính trị</th>
+                 </tr>
+                 <tr class="tdePhu">
+                   <th>QL</th><th>GV</th><th>NV</th><th>Trên ĐH</th><th>Đại học</th><th>Cao đẳng</th><th>Trung cấp</th><th>Khác</th><th>Hạng 1</th><th>Hạng 2</th><th>Hạng 3</th><th>Hạng 4</th><th>Khác</th><th>Cao cấp</th><th>Trung cấp</th><th>Sơ cấp</th>
+                 </tr>
+               </thead>
+               <tbody></tbody>
+             </table>
+           </div>
+        </div>
+     </div>
+     <div class="tab-pane fade" id="m3Phan2">
+        <div class="theTke">
+           <h6 class="tdeTke"><i class="fas fa-star"></i> 3.2. KẾT QUẢ THỰC HIỆN NHIỆM VỤ</h6>
+           <div class="table-responsive">
+             <table class="table table-bordered table-sm text-center table-hover bangTchinh" id="bangTkeDg">
+               <thead>
+                 <tr>
+                   <th rowspan="2" style="vertical-align: middle;">Năm học</th>
+                   <th colspan="4">Xếp loại CM (Kỳ 1)</th>
+                   <th colspan="4">Xếp loại CM (Kỳ 2)</th>
+                   <th colspan="3">Xếp loại CNN</th>
+                   <th colspan="4">Xếp loại Viên chức</th>
+                   <th colspan="4">Xếp loại Đả&#8203;ng viê&#8203;n</th> 
+                   <th colspan="4">Danh hiệu Chuyên môn giỏi</th>
+                   <th colspan="2">Danh hiệu Thi đua</th>
+                   <th colspan="5">Hình thức khen</th>
+                   <th colspan="4">Cấp khen</th>
+                 </tr>
+                 <tr class="tdePhu">
+                   <th class="cotDlTke">Giỏi</th><th class="cotDlTke">Khá</th><th class="cotDlTke">TB</th><th class="cotDlTke">Yếu</th>
+                   <th class="cotDlTke">Giỏi</th><th class="cotDlTke">Khá</th><th class="cotDlTke">TB</th><th class="cotDlTke">Yếu</th>
+                   <th class="cotDlTke">Tốt</th><th class="cotDlTke">Khá</th><th class="cotDlTke">TB</th>
+                   <th class="cotDlTke">HTXS</th><th class="cotDlTke">HTT</th><th class="cotDlTke">HT</th><th class="cotDlTke">CHT</th>
+                   <th class="cotDlTke">HTXS</th><th class="cotDlTke">HTT</th><th class="cotDlTke">HT</th><th class="cotDlTke">CHT</th>
+                   <th class="cotDlTke">Trường</th><th class="cotDlTke">Huyện</th><th class="cotDlTke">Tỉnh</th><th class="cotDlTke">QG</th>
+                   <th class="cotDlTke">LĐTT</th><th class="cotDlTke">CSTĐ</th>
+                   <th class="cotDlTke">Giấy K.</th><th class="cotDlTke">Bằng K.</th><th class="cotDlTke">KNC</th><th class="cotDlTke">Huy C.</th><th class="cotDlTke">Huân C.</th>
+                   <th class="cotDlTke">Xã</th><th class="cotDlTke">Huyện/TP</th><th class="cotDlTke">Tỉnh</th><th class="cotDlTke">CP</th>
+                 </tr>
+               </thead>
+               <tbody></tbody>
+             </table>
+           </div>
+        </div>
+     </div>
+  </div>
+</div>
+
+<script>
+    let treAnTt;
+
+    function hienTooltipTen(e) {
+        clearTimeout(treAnTt); 
+        let tt = document.getElementById('tooltip-toan-cuc');
+        if (!tt) {
+            tt = document.createElement('div');
+            tt.id = 'tooltip-toan-cuc';
+            tt.className = 'danh-sach-ten-hover';
+            tt.style.position = 'fixed';
+            tt.style.zIndex = '999999';
+            
+            tt.onmouseenter = function() { clearTimeout(treAnTt); };
+            tt.onmouseleave = function() { anTtNgay(); };
+            
+            document.body.appendChild(tt);
+        }
+        
+        if (e && e.target && e.target.className === 'goc-do-ghi-chu') {
+            tt.innerHTML = e.target.getAttribute('data-danhsach');
+            tt.style.display = 'block';
+            
+            let rect = tt.getBoundingClientRect();
+            let kcach = 15; 
+            
+            let toaDoY = e.clientY + kcach;
+            if (toaDoY + rect.height > window.innerHeight) {
+                toaDoY = e.clientY - rect.height - kcach;
+            }
+            if (toaDoY < 0) toaDoY = kcach; 
+
+            let toaDoX = e.clientX + kcach;
+            if (toaDoX + rect.width > window.innerWidth) {
+                toaDoX = e.clientX - rect.width - kcach;
+            }
+            
+            tt.style.top = toaDoY + 'px';
+            tt.style.left = toaDoX + 'px';
+        }
+    }
+
+    function anTooltipTen() {
+        treAnTt = setTimeout(anTtNgay, 200);
+    }
+
+    function anTtNgay() {
+        let tt = document.getElementById('tooltip-toan-cuc');
+        if (tt) tt.style.display = 'none';
+    }
+
+    function taoODuLieuCoGhiChu(mangLoc) {
+        let soLuong = mangLoc.length;
+        if (soLuong === 0) return `<td>0</td>`;
+        
+        const cotTen = 1; 
+        let danhSachHTML = mangLoc.map(r => r[cotTen] ? String(r[cotTen]).trim() : "Chưa cập nhật tên").join('<br>');
+        let chuoiAnToan = danhSachHTML.replace(/"/g, '&quot;');
+        
+        return `<td class="o-chua-ghi-chu">
+                    ${soLuong}
+                    <div class="goc-do-ghi-chu" data-danhsach="${chuoiAnToan}" onmouseenter="hienTooltipTen(event)" onmouseleave="anTooltipTen()"></div>
+                </td>`;
+    }
+
+    function veTke() {
+        const nf = $("#nhapLocN3").val(); const bd1 = $("#bangTkeNs tbody"); bd1.empty(); const bd2 = $("#bangTkeDg tbody"); bd2.empty();
+        let ns = layTuyc(0); if (nf) ns = [String(nf).trim()];
+        ns.forEach(y => {
+            let dy = dlToanc.filter(r => String(r[0]).trim() === y && r[4] !== "Đã chuyển");
+            if (dy.length === 0) return;
+            
+            let ts = taoODuLieuCoGhiChu(dy); 
+            let ng1 = taoODuLieuCoGhiChu(dy.filter(r => r[3] === "Nữ")); 
+            let dnc = taoODuLieuCoGhiChu(dy.filter(r => r[5] && r[5] !== "Kinh")); 
+            let ndt = taoODuLieuCoGhiChu(dy.filter(r => r[3] === "Nữ" && r[5] && r[5] !== "Kinh")); 
+            let dvi = taoODuLieuCoGhiChu(dy.filter(r => r[10] && (String(r[10]).toLowerCase() === "x"))); 
+            let ndv = taoODuLieuCoGhiChu(dy.filter(r => r[3] === "Nữ" && r[10] && (String(r[10]).toLowerCase() === "x"))); 
+            let ddt = taoODuLieuCoGhiChu(dy.filter(r => r[5] && r[5] !== "Kinh" && r[10] && (String(r[10]).toLowerCase() === "x")));
+            
+            let cql = taoODuLieuCoGhiChu(dy.filter(r => r[11] && r[11].includes("Quản lý"))); 
+            let cgv = taoODuLieuCoGhiChu(dy.filter(r => r[11] && r[11].includes("Giáo viên"))); 
+            let cnv = taoODuLieuCoGhiChu(dy.filter(r => r[11] && r[11].includes("Nhân viên")));
+            
+            let ctd1 = taoODuLieuCoGhiChu(dy.filter(r => { let v = (r[15]||"").toLowerCase(); return v.includes("trên") || v.includes("thạc sĩ") || v.includes("tiến sĩ"); })); 
+            let ctd2 = taoODuLieuCoGhiChu(dy.filter(r => { let v = (r[15]||"").toLowerCase(); return v.includes("đại học") && !v.includes("trên"); })); 
+            let ctd3 = taoODuLieuCoGhiChu(dy.filter(r => (r[15]||"").toLowerCase().includes("cao đẳng"))); 
+            let ctd4 = taoODuLieuCoGhiChu(dy.filter(r => (r[15]||"").toLowerCase().includes("trung cấp"))); 
+            let ctd5 = taoODuLieuCoGhiChu(dy.filter(r => { let v = (r[15]||"").toLowerCase(); return !v.includes("trên") && !v.includes("thạc sĩ") && !v.includes("tiến sĩ") && !v.includes("đại học") && !v.includes("cao đẳng") && !v.includes("trung cấp"); }));
+            
+            let h1 = taoODuLieuCoGhiChu(dy.filter(r => r[14] === "TH-H1")); 
+            let h2 = taoODuLieuCoGhiChu(dy.filter(r => r[14] === "TH-H2")); 
+            let h3 = taoODuLieuCoGhiChu(dy.filter(r => r[14] === "TH-H3")); 
+            let h4 = taoODuLieuCoGhiChu(dy.filter(r => r[14] === "TH-H4")); 
+            let hk = taoODuLieuCoGhiChu(dy.filter(r => r[14] === "TH_Khác"));
+            
+            let ll1 = taoODuLieuCoGhiChu(dy.filter(r => r[16] === "Cao cấp")); 
+            let ll2 = taoODuLieuCoGhiChu(dy.filter(r => r[16] === "Trung cấp")); 
+            let ll3 = taoODuLieuCoGhiChu(dy.filter(r => r[16] === "Sơ cấp"));
+            
+            bd1.append(`<tr><td class="fw-bold text-primary">${y}</td>${ts}${ng1}${dnc}${ndt}${dvi}${ndv}${ddt}${cql}${cgv}${cnv}${ctd1}${ctd2}${ctd3}${ctd4}${ctd5}${h1}${h2}${h3}${h4}${hk}${ll1}${ll2}${ll3}</tr>`);
+            
+            let g1 = taoODuLieuCoGhiChu(dy.filter(r => r[17] === "Giỏi")); 
+            let k1 = taoODuLieuCoGhiChu(dy.filter(r => r[17] === "Khá")); 
+            let tb1 = taoODuLieuCoGhiChu(dy.filter(r => r[17] === "TB")); 
+            let y1 = taoODuLieuCoGhiChu(dy.filter(r => r[17] === "Yếu"));
+            
+            let g2 = taoODuLieuCoGhiChu(dy.filter(r => r[18] === "Giỏi")); 
+            let k2 = taoODuLieuCoGhiChu(dy.filter(r => r[18] === "Khá")); 
+            let tb2 = taoODuLieuCoGhiChu(dy.filter(r => r[18] === "TB")); 
+            let y2 = taoODuLieuCoGhiChu(dy.filter(r => r[18] === "Yếu"));
+            
+            let cn1 = taoODuLieuCoGhiChu(dy.filter(r => r[19] === "Tốt")); 
+            let cn2 = taoODuLieuCoGhiChu(dy.filter(r => r[19] === "Khá")); 
+            let cn3 = taoODuLieuCoGhiChu(dy.filter(r => r[19] === "TB"));
+            
+            let xs1 = taoODuLieuCoGhiChu(dy.filter(r => { let v = (r[20]||"").toLowerCase(); return v.includes("htxs") || v.includes("xs") || v.includes("xuất sắc"); })); 
+            let xs2 = taoODuLieuCoGhiChu(dy.filter(r => { let v = (r[20]||"").toLowerCase(); return v.includes("htt") || v.includes("tốt"); })); 
+            let xs3 = taoODuLieuCoGhiChu(dy.filter(r => { let v = (r[20]||"").toLowerCase(); return v.includes("cht") || v.includes("chưa") || v.includes("không") || v.includes("kht"); })); 
+            let xs4 = taoODuLieuCoGhiChu(dy.filter(r => { let v = (r[20]||"").toLowerCase(); return (v.includes("ht") || v.includes("hoàn thành")) && !(v.includes("htxs") || v.includes("xs") || v.includes("xuất sắc") || v.includes("htt") || v.includes("tốt") || v.includes("cht") || v.includes("chưa") || v.includes("không") || v.includes("kht")); }));
+            
+            // Cập nhật mảng Cột 26 (Index 25): Đảng viên
+            let dv1 = taoODuLieuCoGhiChu(dy.filter(r => { let v = (r[25]||"").toLowerCase(); return v.includes("htxs") || v.includes("xs") || v.includes("xuất sắc"); })); 
+            let dv2 = taoODuLieuCoGhiChu(dy.filter(r => { let v = (r[25]||"").toLowerCase(); return v.includes("htt") || (v.includes("tốt") && !v.includes("không")); })); 
+            let dv3 = taoODuLieuCoGhiChu(dy.filter(r => { let v = (r[25]||"").toLowerCase(); return v.includes("cht") || v.includes("chưa") || v.includes("không") || v.includes("kht"); })); 
+            let dv4 = taoODuLieuCoGhiChu(dy.filter(r => { let v = (r[25]||"").toLowerCase(); return (v.includes("ht") || v.includes("hoàn thành")) && !(v.includes("htxs") || v.includes("xs") || v.includes("xuất sắc") || v.includes("htt") || v.includes("tốt") || v.includes("cht") || v.includes("chưa") || v.includes("không") || v.includes("kht")); }));
+            
+            let dh1 = taoODuLieuCoGhiChu(dy.filter(r => (r[21]||"").toLowerCase().includes("trường"))); 
+            let dh2 = taoODuLieuCoGhiChu(dy.filter(r => { let v = (r[21]||"").toLowerCase(); return v.includes("huyện") || v.includes("tp") || v.includes("thành phố"); })); 
+            let dh3 = taoODuLieuCoGhiChu(dy.filter(r => (r[21]||"").toLowerCase().includes("tỉnh"))); 
+            let dh4 = taoODuLieuCoGhiChu(dy.filter(r => (r[21]||"").toLowerCase().includes("quốc gia") || (r[21]||"").toLowerCase().includes("qg")));
+            
+            // Mảng Cột 23 (Index 22): Danh hiệu thi đua
+            let td1 = taoODuLieuCoGhiChu(dy.filter(r => r[22] === "LĐTT")); 
+            let td2 = taoODuLieuCoGhiChu(dy.filter(r => r[22] === "CSTĐ")); 
+            
+            // Mảng Cột 24 (Index 23): Hình thức khen
+            let ht1 = taoODuLieuCoGhiChu(dy.filter(r => r[23] === "Giấy khen")); 
+            let ht2 = taoODuLieuCoGhiChu(dy.filter(r => r[23] === "Bằng khen")); 
+            let ht3 = taoODuLieuCoGhiChu(dy.filter(r => r[23] === "Kỷ niệm chương")); 
+            let ht4 = taoODuLieuCoGhiChu(dy.filter(r => r[23] === "Huy chương")); 
+            let ht5 = taoODuLieuCoGhiChu(dy.filter(r => r[23] === "Huân chương"));
+
+            // Cập nhật mảng Cột 25 (Index 24): Cấp khen
+            let ck1 = taoODuLieuCoGhiChu(dy.filter(r => r[24] === "Xã")); 
+            let ck2 = taoODuLieuCoGhiChu(dy.filter(r => r[24] === "Huyện/TP")); 
+            let ck3 = taoODuLieuCoGhiChu(dy.filter(r => r[24] === "Tỉnh")); 
+            let ck4 = taoODuLieuCoGhiChu(dy.filter(r => r[24] === "Chính phủ")); 
+
+            bd2.append(`<tr><td class="fw-bold text-primary">${y}</td>${g1}${k1}${tb1}${y1}${g2}${k2}${tb2}${y2}${cn1}${cn2}${cn3}${xs1}${xs2}${xs4}${xs3}${dv1}${dv2}${dv4}${dv3}${dh1}${dh2}${dh3}${dh4}${td1}${td2}${ht1}${ht2}${ht3}${ht4}${ht5}${ck1}${ck2}${ck3}${ck4}</tr>`);
+        });
+    }
+</script>
