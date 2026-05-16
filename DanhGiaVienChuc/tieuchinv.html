@@ -1,0 +1,162 @@
+<script>
+function f_x_a_nv(chuoi, bThuc) { 
+    return new RegExp(bThuc, 'i').test(chuoi); 
+}
+
+function f_x_b_nv(chuoiKN, mucDo) {
+    if (!chuoiKN || f_x_a_nv(chuoiKN, /không có|không kiêm|khong co|khong kiem/i)) {
+        return true; 
+    }
+    if (mucDo === 'XS') {
+        return f_x_a_nv(chuoiKN, /tốt|xuất sắc|tot|xuat sac/i);
+    }
+    if (mucDo === 'Tốt') {
+        return f_x_a_nv(chuoiKN, /khá|tốt|xuất sắc|kha|tot|xuat sac/i);
+    }
+    if (mucDo === 'HT') {
+        return !f_x_a_nv(chuoiKN, /chưa|không hoàn|yếu|kém|chua|khong hoan|yeu|kem/i);
+    }
+    return false;
+}
+
+function f_x_m_chinh(dataRows) {
+    // Biến 'o' lưu Điểm bình quân tháng gốc, 'm' lưu Tổng điểm phần 1 sau quy đổi
+    let m_k_a = { a: 0, b: '', c: '', d: '', e: 0, f: '', g: '', h: '', i: '', j: 0, k: 0, l: 0, m: 0, n: false, o: 0 };
+    let m_k_b = { a: false, b: false, c: false, d: false, e: false, f: false, g: false, h: false, i: false, j: false, k: false, l: false };
+    let k_t_c = 0; 
+    let b_x_l = false; 
+    let b_x_d = false;
+
+    dataRows.forEach(r => {
+        let c_t_1 = r.ten;
+        let c_g_1 = r.giaTri;
+        let c_s_1 = r.so;
+        
+        // 1. Nhận diện tính điểm thành phần (Điểm phần 2)
+        if (r.isSelect) {
+            k_t_c += r.selectDataP;
+        }
+        
+        // 2. Nhận diện kết quả xếp loại và tính Tổng điểm phần 1 (Quy đổi 100/80/60 + Điểm gốc)
+        if (r.isDiemPhan1 || r.isDongBo || c_t_1.includes("tháng")) {
+            let c_n_1 = c_g_1.match(/\d+([.,]\d+)?/);
+            let c_d_1 = c_n_1 ? parseFloat(c_n_1[0].replace(',', '.')) : 0;
+            
+            if (f_x_a_nv(c_g_1, /xuất sắc/i)) { 
+                b_x_l = true; 
+                b_x_d = true; 
+                m_k_a.m = 100 + c_d_1; 
+            } 
+            else if (f_x_a_nv(c_g_1, /tốt/i)) { 
+                b_x_l = true; 
+                b_x_d = true; 
+                m_k_a.m = 80 + c_d_1;
+            } 
+            else if (f_x_a_nv(c_g_1, /chưa hoàn thành|không hoàn thành|cht/i)) { 
+                b_x_l = false; 
+                b_x_d = false; 
+                m_k_a.m = 0 + c_d_1;
+            } 
+            else if (f_x_a_nv(c_g_1, /hoàn thành|ht/i)) { 
+                b_x_l = false; 
+                b_x_d = true; 
+                m_k_a.m = 60 + c_d_1;
+            } 
+            else {
+                m_k_a.m = c_d_1;
+            }
+            
+            m_k_a.o = c_d_1; // Lưu điểm bình quân gốc
+            m_k_a.n = true;
+            return; 
+        }
+        
+        // 3. Phân bổ các tiêu chí
+        if (c_t_1.includes("phê bình") || c_t_1.includes("nhắc nhở")) { 
+            m_k_a.a = c_s_1; 
+            m_k_b.a = true; 
+        }
+        else if (c_t_1.includes("hiệu quả")) { 
+            m_k_a.b = c_g_1; 
+            m_k_b.b = true; 
+        }
+        else if (c_t_1.includes("chuyên môn")) { 
+            m_k_a.c = c_g_1; 
+            m_k_b.c = true; 
+        }
+        else if (c_t_1.includes("chuyển biến")) { 
+            m_k_a.d = c_g_1; 
+            m_k_b.d = true; 
+        }
+        else if (c_t_1.includes("sáng kiến")) { 
+            m_k_a.h = c_g_1; 
+            m_k_b.h = true; 
+        }
+        else if (c_t_1.includes("kiêm nhiệm")) { 
+            m_k_a.g = c_g_1; 
+            m_k_b.g = true; 
+        }
+    });
+
+    const h_c_c_n = (c_h) => c_h && c_h.trim() !== "";
+
+    // ĐIỀU KIỆN HOÀN THÀNH XUẤT SẮC
+    // Đã cập nhật || (Hoặc) theo yêu cầu mới
+    let c_m_a = (!m_k_b.a || m_k_a.a < 2) && 
+                (b_x_l || (m_k_a.n && m_k_a.o >= 180) || (m_k_a.n && m_k_a.m >= 260)) && 
+                (!m_k_b.b || f_x_a_nv(m_k_a.b, /tốt|xuất sắc/i)) && 
+                (!m_k_b.c || f_x_a_nv(m_k_a.c, /giỏi|xuất sắc/i)) && 
+                (!m_k_b.d || f_x_a_nv(m_k_a.d, /tốt|xuất sắc/i)) && 
+                (m_k_b.h && m_k_a.h.trim() !== "" && f_x_a_nv(m_k_a.h, /xã|cụm|huyện|tỉnh|quốc/i)) && 
+                f_x_b_nv(m_k_a.g, 'XS');
+
+    // ĐIỀU KIỆN HOÀN THÀNH TỐT
+    let c_m_b = (!m_k_b.a || m_k_a.a < 4) && 
+                b_x_l && 
+                (!m_k_b.b || f_x_a_nv(m_k_a.b, /khá|tốt|xuất sắc/i)) && 
+                (!m_k_b.c || f_x_a_nv(m_k_a.c, /khá|giỏi|xuất sắc/i)) && 
+                (!m_k_b.d || f_x_a_nv(m_k_a.d, /khá|tốt|xuất sắc/i)) && 
+                f_x_b_nv(m_k_a.g, 'Tốt');
+
+    // ĐIỀU KIỆN HOÀN THÀNH
+    let c_m_c = (!m_k_b.a || m_k_a.a < 6) && 
+                b_x_d && 
+                (!m_k_b.b || (h_c_c_n(m_k_a.b) && !f_x_a_nv(m_k_a.b, /yếu|kém/i))) && 
+                (!m_k_b.c || (h_c_c_n(m_k_a.c) && !f_x_a_nv(m_k_a.c, /yếu|kém/i))) && 
+                (!m_k_b.d || (h_c_c_n(m_k_a.d) && !f_x_a_nv(m_k_a.d, /chưa đạt|kém/i))) && 
+                f_x_b_nv(m_k_a.g, 'HT');
+
+    // KẾT QUẢ ĐÁNH GIÁ CUỐI CÙNG
+    let k_t = "CHƯA HOÀN THÀNH NHIỆM VỤ"; 
+    let k_m = "#dc3545";
+    
+    if (c_m_a) { 
+        k_t = "HOÀN THÀNH XUẤT SẮC NHIỆM VỤ"; 
+        k_m = "#28a745"; 
+    } else if (c_m_b) { 
+        k_t = "HOÀN THÀNH TỐT NHIỆM VỤ"; 
+        k_m = "#007bff"; 
+    } else if (c_m_c) { 
+        k_t = "HOÀN THÀNH NHIỆM VỤ"; 
+        k_m = "#fd7e14"; 
+    }
+
+    // TÍNH TOÁN ĐIỂM SỐ
+    let k_t_a = m_k_a.n ? m_k_a.m : (b_x_l ? 100 : (b_x_d ? 60 : 0));
+    
+    // Trừ 2 điểm cho mỗi lần bị nhắc nhở/phê bình vào Điểm phần 2
+    if (m_k_b.a && m_k_a.a > 0) {
+        k_t_c -= (m_k_a.a * 2);
+    }
+    
+    let k_t_t = k_t_a + k_t_c;
+
+    return { 
+        diemP1: k_t_a % 1 === 0 ? k_t_a : k_t_a.toFixed(1), 
+        diemP2: k_t_c % 1 === 0 ? k_t_c : k_t_c.toFixed(1), 
+        tongDiem: k_t_t % 1 === 0 ? k_t_t : k_t_t.toFixed(1), 
+        k_t: k_t, 
+        k_m: k_m 
+    };
+}
+</script>
