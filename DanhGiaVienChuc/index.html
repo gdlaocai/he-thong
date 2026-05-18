@@ -350,7 +350,7 @@
         const nhomDaChon = document.getElementById('oChonNhom').value;
         
         if (!nhomDaChon) {
-            hienThiThongBaoUI("<b>LỖI XÁC THỰC</b><br><br>Bạn chưa chọn đối tượng đánh giá!<br>Vui lòng Đóng và chọn lại chính xác đối tượng đánh giá.", f_x_logout);
+            hienThiThongBaoUI("<b>LỖI XÁC THỰC</b><br><br>Bạn chưa chọn đối tượng đánh giá!<br>Vui lòng ấn Đóng để hệ thống thiết lập lại.", f_x_logout);
             return;
         }
 
@@ -387,8 +387,8 @@
 
         const objNhom = document.getElementById('oChonNhom');
         if(document.getElementById('hienThiNhom')) {
-            let nH = objNhom.options[objNhom.selectedIndex].getAttribute("data-nhom");
-            document.getElementById('hienThiNhom').innerText = (nH === 'nhanvien') ? "NHÂN VIÊN" : "GIÁO VIÊN";
+            // Tạm thời hiển thị giá trị text đã chọn. Sẽ được ghi đè bằng chức danh chuẩn từ cột D sau khi đối chiếu.
+            document.getElementById('hienThiNhom').innerText = objNhom.options[objNhom.selectedIndex].text.toUpperCase();
         }
         
         const oNhap = document.getElementById('oNhapChinh');
@@ -456,7 +456,8 @@
         }
         
         const p_n = objNhom.options[objNhom.selectedIndex].getAttribute("data-nhom");
-        document.getElementById('hienThiNhom').innerText = (p_n === 'nhanvien') ? "NHÂN VIÊN" : "GIÁO VIÊN";
+        // Khách tham quan thì hiển thị text người dùng đã chọn
+        document.getElementById('hienThiNhom').innerText = objNhom.options[objNhom.selectedIndex].text.toUpperCase();
         
         document.getElementById("vungThongTin").style.display = "flex";
         
@@ -535,10 +536,9 @@
             if (t_k.status === 'success') {
                 let quyenAdmin = (t_k.y_role && t_k.y_role.toLowerCase().includes('admin'));
                 
-                // KIỂM TRA LỖI SAO CHỨC VỤ TRONG CÙNG NHÓM (CẬP NHẬT TRÍCH XUẤT CỘT D)
                 const chucVuThucTe = (t_k.y_role || "").toLowerCase();
                 if (!quyenAdmin && chucVuChon !== "" && !chucVuThucTe.includes(chucVuChon)) {
-                    hienThiThongBaoUI(`<b>ĐĂNG NHẬP THẤT BẠI</b><br><br>Bạn đã chọn sai đối tượng đánh giá.<br>Chức vụ của bạn là: <span style="color:#b91c1c; font-size:18px;"><b>${t_k.y_role || 'Chưa cập nhật'}</b></span>.<br>Vui lòng Đóng và chọn lại chính xác đối tượng đánh giá.`, f_x_logout);
+                    hienThiThongBaoUI(`<b>ĐĂNG NHẬP THẤT BẠI</b><br><br>Bạn đã chọn sai đối tượng đánh giá.<br>Chức vụ của bạn là: <span style="color:#b91c1c; font-size:18px;"><b>${t_k.y_role || 'Chưa cập nhật'}</b></span>.<br>Vui lòng ấn Đóng để chọn lại chính xác đối tượng này.`, f_x_logout);
                     f_x_j(false);
                     return;
                 }
@@ -547,6 +547,11 @@
                 v_l_a = p_c; v_l_b = t_k.y_a; v_l_c = t_k.y_e; v_l_d = t_k.y_c || ""; 
                 document.getElementById("theHienChinh").innerText = t_k.y_b || v_l_b;
                 
+                // GHI ĐÈ PHÂN LOẠI HIỂN THỊ BẰNG GIÁ TRỊ CHUẨN TỪ CỘT D
+                if (document.getElementById("hienThiNhom")) {
+                    document.getElementById("hienThiNhom").innerText = (t_k.y_role || optChon.text).toUpperCase();
+                }
+
                 v_nam_hoc_hien_tai = t_k.y_namhoc || "";
                 if(document.getElementById("hienThiNamHoc")) document.getElementById("hienThiNamHoc").innerText = v_nam_hoc_hien_tai;
 
@@ -569,8 +574,7 @@
                 document.getElementById("vungThongTin").style.display = "flex";
                 f_x_h();
             } else if (t_k_khac.status === 'success') {
-                // KIỂM TRA LỖI SAO CHỨC VỤ KHÁC NHÓM (CẬP NHẬT TRÍCH XUẤT CỘT D)
-                hienThiThongBaoUI(`<b>ĐĂNG NHẬP THẤT BẠI</b><br><br>Bạn đã chọn sai đối tượng đánh giá.<br>Chức vụ của bạn là: <span style="color:#b91c1c; font-size:18px;"><b>${t_k_khac.y_role || 'Chưa cập nhật'}</b></span>.<br>Vui lòng chọn lại chính xác đối tượng đánh giá.`, f_x_logout);
+                hienThiThongBaoUI(`<b>ĐĂNG NHẬP THẤT BẠI</b><br><br>Bạn đã chọn sai đối tượng đánh giá.<br>Chức vụ của bạn là: <span style="color:#b91c1c; font-size:18px;"><b>${t_k_khac.y_role || 'Chưa cập nhật'}</b></span>.<br>Vui lòng ấn Đóng để chọn lại chính xác đối tượng đánh giá.`, f_x_logout);
                 f_x_j(false);
                 return;
             } else { 
@@ -636,7 +640,8 @@
         v_che_do_xem_admin = true; 
 
         const selectedOption = selectObj.options[selectObj.selectedIndex];
-        const selectedRoleStr = selectedOption.getAttribute('data-role').toLowerCase();
+        const selectedRoleStrDisplay = selectedOption.getAttribute('data-role');
+        const selectedRoleStr = (selectedRoleStrDisplay || "").toLowerCase();
         const selectedName = selectedOption.getAttribute('data-name');
 
         let nhomXacDinh = 'giaovien';
@@ -655,7 +660,8 @@
         }
 
         document.getElementById("theHienChinh").innerText = selectedName;
-        document.getElementById("hienThiNhom").innerText = (nhomXacDinh === 'nhanvien') ? "NHÂN VIÊN" : "GIÁO VIÊN";
+        // HIỂN THỊ ĐÚNG CHỨC DANH TRÊN MENU DỌC (Dành cho Admin xem nhân sự)
+        document.getElementById("hienThiNhom").innerText = selectedRoleStrDisplay ? selectedRoleStrDisplay.toUpperCase() : ((nhomXacDinh === 'nhanvien') ? "NHÂN VIÊN" : "GIÁO VIÊN");
 
         if (v_bo_nho_dem_admin[selectedId]) {
             let t_k = v_bo_nho_dem_admin[selectedId];
