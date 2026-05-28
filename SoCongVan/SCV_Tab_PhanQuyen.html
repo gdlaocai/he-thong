@@ -51,9 +51,9 @@ function loadPhanQuyen() {
                 if(String(r[1]).trim() === "" && String(r[2]).trim() === "") return;
                 tbody.appendChild(createPQRow(r[0], r[1], r[2]));
             });
-            addPQRow();
+        //    addPQRow();
         } else {
-            addPQRow();
+        //    addPQRow();
         }
     }).withFailureHandler(err => {
         tbody.innerHTML = '<tr><td colspan="4" style="color:red; padding: 20px;">❌ ' + err + '</td></tr>';
