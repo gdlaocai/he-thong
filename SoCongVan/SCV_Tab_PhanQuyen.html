@@ -1,0 +1,176 @@
+<div style="padding: 15px;">
+    <div class="cv-header-title" style="text-transform: uppercase;">CẤP QUYỀN TRUY CẬP</div>
+    
+    <div style="margin-bottom: 15px; display: flex; gap: 10px; background: #f0f9ff; padding: 10px; border-radius: 6px; border: 1px solid #bae6fd; align-items: center; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <label for="valPhamVi" style="font-weight: bold; color: #b91c1c; font-size: 14px;">Đối tượng truy cập:</label>
+            <input type="text" id="valPhamVi" class="cell-input" placeholder='all hoặc rỗng' style="width: 150px; border: 1px solid #94a3b8; padding: 6px; border-radius: 4px; text-align: left; background: white;">
+        </div>
+        
+        <div style="width: 2px; height: 30px; background: #bae6fd; margin: 0 10px;"></div>
+        
+        <button onclick="addPQRow()" style="background: #10b981; color: white; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">➕ THÊM DÒNG</button>
+        <button onclick="savePhanQuyen()" style="background: #1e3a8a; color: white; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">💾 CẬP NHẬT</button>
+        
+        <div style="margin-left: auto; color: #0369a1; font-size: 14px; font-style: italic; display: flex; align-items: center;">
+            * Quyền: "x" (Nhập liệu) / "xx" (Quản trị & Nhập liệu)
+        </div>
+    </div>
+    
+    <div class="table-scroll">
+        <table id="tblPhanQuyen">
+            <thead>
+                <tr>
+                    <th style="width: 60px;">Xóa</th>
+                    <th style="width: 80px;">STT</th>
+                    <th>Email</th>
+                    <th style="width: 150px;">Quyền (x/xx)</th>
+                </tr>
+            </thead>
+            <tbody id="tbodyPhanQuyen">
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function loadPhanQuyen() {
+    const tbody = document.getElementById('tbodyPhanQuyen');
+    tbody.innerHTML = '<tr><td colspan="4" style="padding: 20px;">⏳ Đang tải dữ liệu cấu hình...</td></tr>';
+    
+    google.script.run.withSuccessHandler(res => {
+        tbody.innerHTML = '';
+        
+        // Cập nhật giá trị ô phạm vi truy cập (C4)
+        if(res.phamVi !== undefined) {
+            document.getElementById('valPhamVi').value = res.phamVi;
+        }
+
+        if(res.success && res.data && res.data.length > 0) {
+            res.data.forEach(r => {
+                if(String(r[1]).trim() === "" && String(r[2]).trim() === "") return;
+                tbody.appendChild(createPQRow(r[0], r[1], r[2]));
+            });
+            addPQRow();
+        } else {
+            addPQRow();
+        }
+    }).withFailureHandler(err => {
+        tbody.innerHTML = '<tr><td colspan="4" style="color:red; padding: 20px;">❌ ' + err + '</td></tr>';
+        toast("❌ Lỗi tải phân quyền: " + err);
+    }).SCV_getPhanQuyen();
+}
+
+function createPQRow(stt, email, quyen) {
+    const tr = document.createElement('tr');
+    const qVal = (quyen || '').toLowerCase().trim();
+    tr.innerHTML = `
+        <td><button onclick="deletePQRow(this)" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">X</button></td>
+        <td><input type="text" class="cell-input stt-pq" value="${stt || ''}"></td>
+        <td><input type="text" class="cell-input email-pq" value="${email || ''}" style="text-align: left;" placeholder="Nhập địa chỉ email..."></td>
+        <td>
+            <select class="cell-input quyen-pq" style="cursor: pointer; text-align: center; text-align-last: center;">
+                <option value="" ${qVal === '' ? 'selected' : ''}></option>
+                <option value="x" ${qVal === 'x' ? 'selected' : ''}>x</option>
+                <option value="xx" ${qVal === 'xx' ? 'selected' : ''}>xx</option>
+            </select>
+        </td>
+    `;
+    return tr;
+}
+
+function addPQRow() {
+    const tbody = document.getElementById('tbodyPhanQuyen');
+    const newRow = createPQRow('', '', '');
+    
+    // Chèn dòng mới lên đầu tiên
+    if (tbody.firstChild) {
+        tbody.insertBefore(newRow, tbody.firstChild);
+    } else {
+        tbody.appendChild(newRow);
+    }
+    
+    // Đánh lại số thứ tự (STT) từ trên xuống dưới
+    const sttInputs = document.querySelectorAll('#tbodyPhanQuyen .stt-pq');
+    sttInputs.forEach((input, index) => {
+        input.value = index + 1;
+    });
+}
+
+function deletePQRow(btn) {
+    const tr = btn.closest('tr');
+    tr.remove();
+    const sttInputs = document.querySelectorAll('#tbodyPhanQuyen .stt-pq');
+    sttInputs.forEach((input, index) => {
+        input.value = index + 1;
+    });
+}
+
+function savePhanQuyen() {
+    const trs = document.querySelectorAll('#tbodyPhanQuyen tr');
+    const valPhamVi = document.getElementById('valPhamVi').value.trim();
+    let dataRows = [];
+    let hasValidAdmin = false;
+    let hasEmptyEmail = false;
+    
+    trs.forEach(tr => {
+        let stt = tr.querySelector('.stt-pq').value.trim();
+        let emailInput = tr.querySelector('.email-pq');
+        let email = emailInput.value.trim();
+        let quyen = tr.querySelector('.quyen-pq').value.trim().toLowerCase();
+        
+        // Nếu dòng trống hoàn toàn (dòng dự phòng để nhập mới), bỏ qua không đưa vào mảng lưu
+        if(stt === "" && email === "" && quyen === "") {
+            return;
+        }
+
+        // Kiểm tra ràng buộc bắt buộc phải có Email nếu dòng đã có dữ liệu
+        if (email === "") {
+            hasEmptyEmail = true;
+            emailInput.style.border = "1px solid #ef4444";
+            emailInput.style.backgroundColor = "#fee2e2";
+        } else {
+            emailInput.style.border = "none";
+            emailInput.style.backgroundColor = "transparent";
+            
+            // Validation: Phải có ít nhất 1 quyền "xx" để tránh khóa hệ thống
+            if (quyen === 'xx') {
+                hasValidAdmin = true;
+            }
+            
+            dataRows.push([stt, email, quyen]);
+        }
+    });
+
+    // Chặn lưu nếu có dòng thiếu email
+    if (hasEmptyEmail) {
+        toast("⚠️ Lỗi: Có dòng dữ liệu chưa nhập địa chỉ Email. Vui lòng kiểm tra lại!");
+        return;
+    }
+    
+    // Chặn lưu nếu không có ai giữ quyền quản trị
+    if (!hasValidAdmin) {
+        toast("⚠️ Lỗi: Bắt buộc phải có ít nhất một tài khoản mang quyền 'xx' để giữ quyền quản trị hệ thống!");
+        return;
+    }
+    
+    toast("⏳ Đang lưu cấu hình phân quyền...");
+    
+    // Đóng gói payload gửi lên server bao gồm cả biến phạm vi (C4)
+    const payload = {
+        phamVi: valPhamVi,
+        rows: dataRows
+    };
+
+    google.script.run.withSuccessHandler(res => {
+        if(res.includes("❌") || res.includes("⚠️")) {
+            toast(res);
+        } else {
+            toast(res);
+            loadPhanQuyen(); 
+        }
+    }).withFailureHandler(err => {
+        toast("❌ Lỗi lưu phân quyền: " + err);
+    }).SCV_updatePhanQuyen(payload); 
+}
+</script>
