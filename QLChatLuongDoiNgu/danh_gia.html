@@ -153,7 +153,9 @@
           
           let ns = cqS ? `<button class="btn btn-sm btn-success py-0" onclick="moSuaDg(${idx})"><i class="fas fa-edit"></i></button>` : '';
           
-          let dlC = dg.cktdg ? "dongCkt" : ""; let tcP = dg.cktdg ? " <i class='fas fa-pen text-danger' title='Chưa lưu'></i>" : "";
+          // Khởi tạo class nền vàng (dongCkt) và bút đỏ (tcP)
+          let dlC = dg.cktdg ? "dongCkt" : ""; 
+          let tcP = dg.cktdg ? " <i class='fas fa-pen text-danger' title='Chưa lưu'></i>" : "";
 
           let lk = dg[31] || "";
           let dsL = lk.split(',').map(l => l.trim()).filter(l => l !== "");
