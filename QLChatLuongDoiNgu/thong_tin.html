@@ -274,25 +274,41 @@
        const bd = document.getElementById("bmNsu"); let nB = [];
        for(let i=0; i<=16; i++) { let vc = ""; if(i===10) vc = bd.elements['c10'].checked ? "x" : ""; else vc = bd.elements['c'+i].value; nB.push(vc); }
        
-       let cccd = bd.elements['c26'].value; 
+       let cccd = String(bd.elements['c26'].value).trim(); 
 
-       // BẮT ĐẦU: XÁC THỰC THÔNG TIN (VALIDATION)
+       // 1. XÁC THỰC THÔNG TIN (VALIDATION CHỐNG BỎ TRỐNG)
        let hopLe = true;
        for(let i = 0; i <= 16; i++) {
-           // Bỏ qua kiểm tra ô Checkbox (10), Hạng/Ngạch (14) và LL Chính trị (16)
            if(i === 10 || i === 14 || i === 16) continue;
            if(String(nB[i]).trim() === "") {
                hopLe = false;
                break;
            }
        }
-       if(String(cccd).trim() === "") hopLe = false; // Bắt buộc phải có CCCD
+       if(cccd === "") hopLe = false; 
 
        if(!hopLe) {
            return hienTbao("Vui lòng điền đầy đủ các thông tin (Trừ Hạng/Ngạch và LL Chính trị)!", 'loi');
        }
-       // KẾT THÚC: XÁC THỰC THÔNG TIN
 
+       // 2. KIỂM TRA TRÙNG LẶP CCCD KHI LƯU
+       let biTrungCCCD = false;
+       if (csSua !== -1) { 
+           // Chế độ SỬA: Nếu CCCD bị đổi, kiểm tra xem mã mới có trùng với ai khác không
+           let cccdCu = String(dlToanc[csSua][26] || "").trim();
+           if (cccd !== cccdCu) { 
+               biTrungCCCD = dlToanc.some((row, index) => index !== csSua && String(row[26] || "").trim() === cccd);
+           }
+       } else { 
+           // Chế độ THÊM MỚI: Kiểm tra mã CCCD trong toàn bộ dữ liệu
+           biTrungCCCD = dlToanc.some(row => String(row[26] || "").trim() === cccd);
+       }
+
+       if (biTrungCCCD) {
+           return hienTbao("Mã cá biệt (CCCD) này đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!", 'loi');
+       }
+
+       // 3. XỬ LÝ CHUYỂN NĂM HỌC HOẶC GHI DỮ LIỆU
        if(csSua !== -1) {
            let hienTaiNam = String(dlToanc[csSua][0]).trim();
            let formNam = String(nB[0]).trim();
