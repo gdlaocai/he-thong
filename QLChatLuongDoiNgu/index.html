@@ -17,9 +17,6 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   
   <script>
-    /* ==========================================================================
-       INTERNAL API BRIDGE (DI CHUYỂN TỪ KETNOI.JS XUỐNG)
-       ========================================================================== */
     async function goiMyChuHien(tenLenh, tLieu = {}) {
         tLieu.lenh = tenLenh;
         try {
@@ -205,9 +202,6 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-    /* ==========================================================================
-       KHỐI ĐỒNG BỘ CẤU HÌNH DOM TỪ KETNOI.JS
-       ========================================================================== */
     function applyQLNSConfig() {
         if(typeof QLNS_LINK_LOGO !== 'undefined') {
             let log = document.getElementById('login_logo');
@@ -244,6 +238,7 @@
 
     let ndHtai = null, dlToanc = [], chinhToanc = [], csSua = -1;
     let mangDuLieuTam = null; 
+    window.dangKhoaHeThong = false; 
     
     function kiemtKhoa() {
         let hd = typeof QLNS_HAN_DUNG !== 'undefined' ? QLNS_HAN_DUNG : "31/12/2026";
@@ -307,7 +302,6 @@
             ndHtai.vTro === 'qtriv' ? $("#nutMoThemNs").show() : $("#nutMoThemNs").hide();
             ndHtai.vTro === 'qtriv' ? $("#tabPhanQuyen").show() : $("#tabPhanQuyen").hide();
             
-            // Ép Tab mặc định về Thông tin nhân sự khi F5 hoặc mở lại
             $("#bangChonGoc button[data-bs-target='#muc1']").click();
 
             taiDlBdau();
@@ -346,13 +340,19 @@
       const emTruyCap = tdtai['email']; 
       
       $("#vungTai").show();
+      $("#loiDn").text(""); 
       goiMyChuHien('dangNhapHt', { gMai: emTruyCap })
         .then(khiDnTc)
         .catch(khiDnLoi);
     }
     
     function khiDnTc(pq) {
-      if(!pq.tCong) { $("#vungTai").hide(); $("#loiDn").text(pq.tBao); return; }
+      if(!pq.tCong) { 
+          $("#vungTai").hide(); 
+          $("#loiDn").text(pq.tBao); 
+          hienTbao(pq.tBao, 'loi'); 
+          return; 
+      }
       
       ndHtai = pq.dLieu;
       sessionStorage.setItem("ngdungNs", JSON.stringify(ndHtai));
@@ -360,7 +360,6 @@
       ndHtai.vTro === 'qtriv' ? $("#nutMoThemNs").show() : $("#nutMoThemNs").hide();
       ndHtai.vTro === 'qtriv' ? $("#tabPhanQuyen").show() : $("#tabPhanQuyen").hide();
       
-      // Ép Tab mặc định về Thông tin nhân sự khi Đăng nhập thành công
       $("#bangChonGoc button[data-bs-target='#muc1']").click();
 
       $("#manhDn").hide(); $("#udChinh").show(); taiDlBdau();
@@ -373,8 +372,9 @@
        $("#khuBangNs tbody").empty(); $("#khuBangDg tbody").empty();
        $("#tabPhanQuyen").hide();
        
-       // Ép Tab mặc định về Thông tin nhân sự khi Đăng xuất (khóa an toàn UI)
        $("#bangChonGoc button[data-bs-target='#muc1']").click();
+       
+       $("#loiDn").text(""); 
 
        $("#udChinh").hide(); $("#manhDn").css("display", "flex").fadeIn();
     }
@@ -383,6 +383,8 @@
 
     function taiDlBdau() {
       $("#vungTai").show();
+      
+      // GỘP LẤY DỮ LIỆU VÀ LẤY TRẠNG THÁI KHÓA LÀM 1 NHỊP API ĐỂ ĐẢM BẢO KHÔNG LỖI ĐỒNG BỘ
       goiMyChuHien('layTatCaDl')
         .then(q => {
             if(q.tCong) veUd(q.dLieu); else { hienTbao(q.tBao, 'loi'); $("#vungTai").hide(); }
@@ -391,6 +393,12 @@
     
     function veUd(tdl) {
       if (!tdl) { hienTbao("Không có dữ liệu!", 'loi'); $("#vungTai").hide(); return; }
+      
+      // NHẬN TRẠNG THÁI KHÓA NGAY KHI CÓ DỮ LIỆU
+      if (tdl.dangKhoa !== undefined) {
+         window.dangKhoaHeThong = (tdl.dangKhoa === true || String(tdl.dangKhoa).toLowerCase() === "true");
+      }
+
       chinhToanc = tdl.chinh || []; dlToanc = tdl.nsu || [];
       cldChon(); veBangNs(); veBangDg(); veTke(); $("#vungTai").hide();
     }
