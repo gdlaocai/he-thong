@@ -27,7 +27,7 @@
            ========================================================================= */
         :root {
             /* Hình nền gốc mặc định */
-            --default-bg: url('https://i.ibb.co/hJy3vH7y/hinh-nen-win-11-50-1.jpg');
+            --default-bg: url('https://i.ibb.co/4gCSYHV6/congthongtin1.jpg');
         }
 
         * {
@@ -354,6 +354,9 @@
         </div>
         
         <div class="system-tray">
+            <div class="tray-icon" onclick="toggleFullScreen()" title="Bật/Tắt Toàn màn hình">
+                <span class="material-icons" id="fullscreen-icon">fullscreen</span>
+            </div>
             <div class="tray-icon" onclick="resetPositions()" title="Khôi phục vị trí gốc của các biểu tượng">
                 <span class="material-icons">restore</span>
             </div>
@@ -616,6 +619,43 @@
             win.style.display = 'none';
         }
     }
+
+    /* =========================================================================
+       6. KHỐI ĐIỀU KHIỂN TOÀN MÀN HÌNH (FULLSCREEN)
+       ========================================================================= */
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.log(`Không thể bật toàn màn hình: ${err.message}`);
+            });
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    }
+
+    // Lắng nghe sự kiện ESC hoặc thoát toàn màn hình để đổi icon cho đồng bộ
+    document.addEventListener('fullscreenchange', (event) => {
+        const icon = document.getElementById('fullscreen-icon');
+        if (document.fullscreenElement) {
+            icon.innerText = 'fullscreen_exit';
+        } else {
+            icon.innerText = 'fullscreen';
+        }
+    });
+
+    // Tính năng mở rộng: Tự động kích hoạt toàn màn hình khi nhấp chuột vào nền Desktop lần đầu
+    desktopArea.addEventListener('click', function autoFullscreen(e) {
+        // Chỉ kích hoạt nếu nhấp trực tiếp vào nền, không phải nhấp vào các Icon dự án
+        if (e.target === desktopArea) {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {});
+            }
+            // Chỉ chạy 1 lần duy nhất để tránh gây phiền toái
+            desktopArea.removeEventListener('click', autoFullscreen);
+        }
+    });
 
     // Khởi chạy hệ thống sau khi trang tải xong
     window.addEventListener("DOMContentLoaded", function() {
