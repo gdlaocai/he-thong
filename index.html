@@ -416,7 +416,7 @@
     updateClock();
 
     /* =========================================================================
-       3. THUẬT TOÁN ĐÓNG BĂNG TỌA ĐỘ VÀ KÉO THẢ (KHÔNG LÀM HỎNG CSS)
+       3. THUẬT TOÁN ĐÓNG BĂNG TỌA ĐỘ VÀ KÉO THẢ
        ========================================================================= */
     function initializeLayout() {
         const savedPositions = JSON.parse(localStorage.getItem('ht_desktop_positions_v3')) || {};
@@ -428,7 +428,7 @@
                 icon.style.position = 'absolute';
                 icon.style.left = savedPositions[id].left;
                 icon.style.top = savedPositions[id].top;
-                icon.style.margin = '0'; // Xóa margin gốc của flexbox
+                icon.style.margin = '0'; 
             }
         });
 
@@ -555,21 +555,19 @@
        4. KHỐI KHÔI PHỤC VỊ TRÍ GỐC (RESET POSITIONS)
        ========================================================================= */
     function resetPositions() {
-        if (confirm("Thầy có chắc chắn muốn khôi phục toàn bộ biểu tượng về vị trí sắp xếp mặc định ban đầu không?")) {
-            // Xóa dữ liệu vị trí đã lưu trong bộ nhớ
-            localStorage.removeItem('ht_desktop_positions_v3');
-            
-            // Gỡ bỏ các thuộc tính CSS tuyệt đối để thẻ tự dàn lại theo cấu trúc gốc
-            icons.forEach(icon => {
-                icon.style.position = '';
-                icon.style.left = '';
-                icon.style.top = '';
-                icon.style.margin = '';
-            });
-            
-            // Gọi lại hàm để đóng băng tọa độ mới theo dàn trang gốc
-            initializeLayout();
-        }
+        // Xóa dữ liệu vị trí đã lưu trong bộ nhớ
+        localStorage.removeItem('ht_desktop_positions_v3');
+        
+        // Gỡ bỏ các thuộc tính CSS tuyệt đối để thẻ tự dàn lại theo cấu trúc gốc
+        icons.forEach(icon => {
+            icon.style.position = '';
+            icon.style.left = '';
+            icon.style.top = '';
+            icon.style.margin = '';
+        });
+        
+        // Gọi lại hàm để đóng băng tọa độ mới theo dàn trang gốc
+        initializeLayout();
     }
 
     /* =========================================================================
