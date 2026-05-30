@@ -10,16 +10,16 @@
     
     <style>
         /* =========================================================================
-           1. KHỐI NỀN TẢNG (HỆ ĐIỀU HÀNH WINDOWS UI) - PHỤC HỒI GỐC
+           1. KHỐI NỀN TẢNG (HỆ ĐIỀU HÀNH WINDOWS UI) 
            ========================================================================= */
         :root {
-            /* Hình nền Windows mặc định */
-            --default-bg: url('https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2000&auto=format&fit=crop');
+            /* Hình nền Windows mặc định mới theo yêu cầu */
+            --default-bg: url('https://i.ibb.co/4gCSYHV6/congthongtin1.jpg');
         }
 
         * {
             box-sizing: border-box;
-            user-select: none; /* Hạn chế bôi đen văn bản để giống ứng dụng */
+            user-select: none; 
         }
 
         html, body { 
@@ -42,12 +42,11 @@
         }
 
         /* =========================================================================
-           2. KHỐI MÀN HÌNH CHÍNH (DESKTOP GRID) - PHỤC HỒI GỐC
+           2. KHỐI MÀN HÌNH CHÍNH (DESKTOP GRID)
            ========================================================================= */
         #desktop-area {
             flex: 1;
             padding: 10px;
-            /* Cấu trúc lưới linh hoạt gốc */
             display: flex;
             flex-direction: column;
             flex-wrap: wrap;
@@ -69,7 +68,6 @@
             border-radius: 4px;
             cursor: pointer;
             transition: background 0.1s;
-            /* touch-action để hỗ trợ kéo thả trên màn hình cảm ứng mượt hơn */
             touch-action: none; 
         }
 
@@ -128,7 +126,7 @@
         }
 
         /* =========================================================================
-           3. THANH TÁC VỤ (TASKBAR) DƯỚI CÙNG - PHỤC HỒI GỐC
+           3. THANH TÁC VỤ (TASKBAR) DƯỚI CÙNG
            ========================================================================= */
         .taskbar {
             height: 48px;
@@ -197,7 +195,7 @@
         }
 
         /* =========================================================================
-           4. HỘP THOẠI GHI CHÚ BÁM CHUỘT (TOOLTIP) - PHỤC HỒI GỐC
+           4. HỘP THOẠI GHI CHÚ BÁM CHUỘT (TOOLTIP) 
            ========================================================================= */
         .win-tooltip {
             position: fixed;
@@ -217,7 +215,7 @@
         }
 
         /* =========================================================================
-           5. CỬA SỔ TIỆN ÍCH DẠY HỌC (WINDOW UI) - PHỤC HỒI GỐC
+           5. CỬA SỔ TIỆN ÍCH DẠY HỌC (WINDOW UI)
            ========================================================================= */
         .window-overlay {
             position: fixed;
@@ -341,6 +339,9 @@
         </div>
         
         <div class="system-tray">
+            <div class="tray-icon" onclick="resetPositions()" title="Khôi phục vị trí gốc của các biểu tượng">
+                <span class="material-icons">restore</span>
+            </div>
             <div class="tray-icon" onclick="toggleUtilities(true)" title="Mở Tiện ích dạy học">
                 <span class="material-icons">build_circle</span>
             </div>
@@ -432,7 +433,6 @@
         });
 
         // Bước 2: Chờ trình duyệt vẽ xong lưới Flexbox gốc, sau đó "đóng băng" tọa độ
-        // Thuật toán này giúp giữ nguyên 100% giao diện gốc, nhưng chuyển đổi ngầm sang tọa độ tuyệt đối để kéo thả
         setTimeout(() => {
             icons.forEach(icon => {
                 if (icon.style.position !== 'absolute') {
@@ -447,7 +447,7 @@
                 }
             });
 
-            // Sau khi đã chốt tọa độ của tất cả, mới áp dụng position absolute đồng loạt để không bị dồn cục
+            // Sau khi đã chốt tọa độ của tất cả, mới áp dụng position absolute đồng loạt
             icons.forEach(icon => {
                 icon.style.position = 'absolute';
                 icon.style.margin = '0';
@@ -458,7 +458,7 @@
     // Cơ chế kéo thả mượt mà bằng Mouse Events
     let draggedIcon = null;
     let offsetX = 0, offsetY = 0;
-    let dragThresholdPassed = false; // Phân biệt click và drag
+    let dragThresholdPassed = false; 
     let startX, startY;
 
     icons.forEach(icon => {
@@ -482,7 +482,7 @@
         offsetX = clientX - rect.left;
         offsetY = clientY - rect.top;
         
-        tooltip.style.opacity = '0'; // Ẩn tooltip
+        tooltip.style.opacity = '0'; 
 
         document.addEventListener('mousemove', drag);
         document.addEventListener('touchmove', drag, {passive: false});
@@ -537,7 +537,6 @@
         
         draggedIcon = null;
         
-        // Đặt độ trễ để tránh xung đột với sự kiện click
         setTimeout(() => { isDragging = false; }, 50);
     }
 
@@ -553,7 +552,28 @@
     }
 
     /* =========================================================================
-       4. KHỐI CẤU HÌNH HÌNH NỀN VÀ QUẢN LÝ CỬA SỔ
+       4. KHỐI KHÔI PHỤC VỊ TRÍ GỐC (RESET POSITIONS)
+       ========================================================================= */
+    function resetPositions() {
+        if (confirm("Thầy có chắc chắn muốn khôi phục toàn bộ biểu tượng về vị trí sắp xếp mặc định ban đầu không?")) {
+            // Xóa dữ liệu vị trí đã lưu trong bộ nhớ
+            localStorage.removeItem('ht_desktop_positions_v3');
+            
+            // Gỡ bỏ các thuộc tính CSS tuyệt đối để thẻ tự dàn lại theo cấu trúc gốc
+            icons.forEach(icon => {
+                icon.style.position = '';
+                icon.style.left = '';
+                icon.style.top = '';
+                icon.style.margin = '';
+            });
+            
+            // Gọi lại hàm để đóng băng tọa độ mới theo dàn trang gốc
+            initializeLayout();
+        }
+    }
+
+    /* =========================================================================
+       5. KHỐI CẤU HÌNH HÌNH NỀN VÀ QUẢN LÝ CỬA SỔ
        ========================================================================= */
     function loadSavedBackground() {
         var savedBgUrl = localStorage.getItem("ht_dashboard_bg");
@@ -567,7 +587,7 @@
         var newUrl = prompt(
             "CẤU HÌNH HÌNH NỀN DESKTOP\n\n" + 
             "Nhập đường dẫn (URL) hình ảnh Thầy muốn sử dụng làm hình nền:\n" + 
-            "(Để trống và nhấn OK nếu muốn quay về hình nền phong cảnh mặc định)", 
+            "(Để trống và nhấn OK nếu muốn quay về hình nền cổng thông tin mặc định)", 
             currentUrl
         );
 
