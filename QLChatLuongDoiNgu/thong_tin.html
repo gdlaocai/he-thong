@@ -145,8 +145,12 @@
     function veBangNs() {
        const ln = $("#nhapLocN1").val(); 
        const chT = window.xoaDauVN($("#nhapTimKiemNs").val()); 
-       const tv = $("#khuBangNs tbody"); tv.empty();
+       const tv = $("#khuBangNs tbody"); 
+       tv.empty();
        
+       if (!dlToanc || dlToanc.length === 0) return; // Bảo vệ an toàn nếu mảng trống
+
+       // Thuật toán sắp xếp an toàn, chặn lỗi khi chuỗi bị undefined
        dlToanc.sort((a, b) => {
            if (a.ckt && !b.ckt) return -1;
            if (!a.ckt && b.ckt) return 1;
@@ -154,8 +158,11 @@
            let nA = String(a[0] || "").trim(), nB = String(b[0] || "").trim();
            if (nA !== nB) return nB.localeCompare(nA);
            
-           let htA = String(a[1] || "").trim().split(' '), tA = htA[htA.length - 1].toLowerCase();
-           let htB = String(b[1] || "").trim().split(' '), tB = htB[htB.length - 1].toLowerCase();
+           let htA = String(a[1] || "").trim().split(' ');
+           let tA = htA.length > 0 ? htA[htA.length - 1].toLowerCase() : "";
+           
+           let htB = String(b[1] || "").trim().split(' ');
+           let tB = htB.length > 0 ? htB[htB.length - 1].toLowerCase() : "";
            
            if (tA !== tB) return tA.localeCompare(tB, 'vi'); 
            return String(a[1] || "").trim().localeCompare(String(b[1] || "").trim(), 'vi'); 
@@ -164,24 +171,31 @@
        let stt = 1; 
 
        dlToanc.forEach((dg, v) => {
-          let nc = String(dg[0]).trim();
+          let nc = String(dg[0] || "").trim();
           if(ln && nc !== String(ln).trim()) return;
           if(chT && !window.xoaDauVN(dg.join(" ")).includes(chT)) return;
           
-          let mcbND = ndHtai.mcb ? String(ndHtai.mcb).trim() : "KHONG_XAC_DINH";
+          // Bọc lỗi Fallback Cache: Nếu Session cũ chứa .cccd thì ưu tiên dùng tạm
+          let mcbND = "KHONG_XAC_DINH";
+          if (ndHtai && ndHtai.mcb) {
+              mcbND = String(ndHtai.mcb).trim();
+          } else if (ndHtai && ndHtai.cccd) { 
+              mcbND = String(ndHtai.cccd).trim();
+          }
+          
           let mcbHS = String(dg[26] || "").trim();
           
           let cqS = false;
           // QUYỀN HIỂN THỊ NÚT SỬA 
-          if (ndHtai.vTro === 'qtriv' || ndHtai.vTro === 'admin_xx') {
+          if (ndHtai && (ndHtai.vTro === 'qtriv' || ndHtai.vTro === 'admin_xx')) {
               cqS = true; 
-          } else if (ndHtai.vTro === 'ngdung' && mcbND !== "" && mcbND !== "KHONG_XAC_DINH" && mcbND === mcbHS) {
+          } else if (ndHtai && ndHtai.vTro === 'ngdung' && mcbND !== "" && mcbND !== "KHONG_XAC_DINH" && mcbND === mcbHS) {
               cqS = true;
           }
 
           let isKhoaHT = (window.dangKhoaHeThong === true || window.dangKhoaHeThong === "true");
           // KHÓA BẢO VỆ MỞ RỘNG
-          if (isKhoaHT && ndHtai.vTro !== 'qtriv') {
+          if (isKhoaHT && ndHtai && ndHtai.vTro !== 'qtriv') {
               cqS = false;
           }
 
@@ -189,24 +203,25 @@
           
           let cdG = dg.ckt ? "dongCkt" : ""; let cpT = dg.ckt ? " <i class='fas fa-pen text-danger' title='Chưa lưu'></i>" : "";
           
-        tv.append(`
+          // Đảm bảo không render undefined lên HTML
+          tv.append(`
     <tr class="${cdG}">
        <td class="text-center">${ntS}</td>
                   <td class="text-center fw-bold text-muted">${stt++}</td>
-                  <td class="text-center fw-bold text-primary">${dg[0]}</td>
-                  <td style="text-align: left;" class="fw-bold">${dg[1]} ${cpT}</td>
-                  <td>${dg[2]}</td>
-                  <td>${dg[3]}</td>
-                  <td><span class="badge ${dg[4] === 'Đã chuyển' ? 'bg-danger' : 'bg-success'}">${dg[4]}</span></td>
-                  <td>${dg[5]}</td>
-                  <td>${dg[6]}</td>
-                  <td style="text-align: left;">${dg[7]}, ${dg[8]}, ${dg[9]}</td>
-                  <td>${dg[10]}</td>
-                  <td>${dg[11]}</td>
-                  <td>${dg[12]}</td>
-                  <td>${dg[14]}</td>
-                  <td>${dg[15]}</td>
-                  <td>${dg[16]}</td>
+                  <td class="text-center fw-bold text-primary">${dg[0] || ''}</td>
+                  <td style="text-align: left;" class="fw-bold">${dg[1] || ''} ${cpT}</td>
+                  <td>${dg[2] || ''}</td>
+                  <td>${dg[3] || ''}</td>
+                  <td><span class="badge ${dg[4] === 'Đã chuyển' ? 'bg-danger' : 'bg-success'}">${dg[4] || ''}</span></td>
+                  <td>${dg[5] || ''}</td>
+                  <td>${dg[6] || ''}</td>
+                  <td style="text-align: left;">${dg[7] || ''}, ${dg[8] || ''}, ${dg[9] || ''}</td>
+                  <td>${dg[10] || ''}</td>
+                  <td>${dg[11] || ''}</td>
+                  <td>${dg[12] || ''}</td>
+                  <td>${dg[14] || ''}</td>
+                  <td>${dg[15] || ''}</td>
+                  <td>${dg[16] || ''}</td>
     </tr>
 `);
        });
@@ -252,8 +267,8 @@
     function xoaNs() {
        if (csSua === -1) return;
        const dn = dlToanc[csSua]; 
-       const n1 = String(dn[0]).trim(); 
-       const n2 = String(dn[1]).trim(); 
+       const n1 = String(dn[0] || "").trim(); 
+       const n2 = String(dn[1] || "").trim(); 
        
        document.getElementById('namXoaHthi').innerText = n1;
        document.getElementById('tenXoaHthi').innerText = n2;
@@ -273,9 +288,9 @@
 
        if (csSua === -1) return;
        const dn = dlToanc[csSua]; 
-       const n1 = String(dn[0]).trim(); 
-       const n2 = String(dn[1]).trim(); 
-       const n3 = String(dn[2]).trim(); 
+       const n1 = String(dn[0] || "").trim(); 
+       const n2 = String(dn[1] || "").trim(); 
+       const n3 = String(dn[2] || "").trim(); 
        
        $("#vungTai").show();
        goiMyChuHien('xoaNsu', {nam: n1, mso: n2, ngaysinh: n3, tKhoan: ndHtai.tKhoan, vTro: ndHtai.vTro})
@@ -395,7 +410,11 @@
        const dtN = dlToanc.filter(r => r.ckt);
        if(dtN.length===0) return hienTbao("Không có dữ liệu mới!", 'loi');
        $("#vungTai").show();
-       goiMyChuHien('luuNhieuNsu', {mangDl: dtN, vTro: ndHtai.vTro, mcb: ndHtai.mcb})
+       
+       // Fallback an toàn phòng khi cache chưa cập nhật
+       let sendMCB = ndHtai.mcb ? ndHtai.mcb : (ndHtai.cccd ? ndHtai.cccd : "");
+       
+       goiMyChuHien('luuNhieuNsu', {mangDl: dtN, vTro: ndHtai.vTro, mcb: sendMCB})
          .then(h => { hienTbao(h.tBao, h.tCong ? 'tc' : 'loi'); if(h.tCong) taiDlBdau(); else $("#vungTai").hide(); })
          .catch(lo => { hienTbao("Lỗi: " + lo, 'loi'); $("#vungTai").hide(); });
     }
