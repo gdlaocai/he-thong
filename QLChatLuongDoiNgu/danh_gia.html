@@ -147,13 +147,13 @@
           if(tk && !window.xoaDauVN(dg.join(" ")).includes(tk)) return;
           if(dg[4] === "Đã chuyển") return; 
           
-          let cccdND = ndHtai.cccd ? String(ndHtai.cccd).trim() : "KHONG_XAC_DINH";
-          let cccdHS = String(dg[26] || "").trim();
+          let mcbND = ndHtai.mcb ? String(ndHtai.mcb).trim() : "KHONG_XAC_DINH";
+          let mcbHS = String(dg[26] || "").trim();
           
           let cqS = false;
           if (ndHtai.vTro === 'qtriv' || ndHtai.vTro === 'admin_xx') {
               cqS = true;
-          } else if (ndHtai.vTro === 'ngdung' && cccdND !== "" && cccdND !== "KHONG_XAC_DINH" && cccdND === cccdHS) {
+          } else if (ndHtai.vTro === 'ngdung' && mcbND !== "" && mcbND !== "KHONG_XAC_DINH" && mcbND === mcbHS) {
               cqS = true;
           }
           
@@ -260,7 +260,7 @@
        const dc = dlToanc.filter(r => r.cktdg);
        if(dc.length===0) return hienTbao("Không có dữ liệu đánh giá mới!", 'loi');
        $("#vungTai").show();
-       goiMyChuHien('luuNhieuDgia', {mangDl: dc, vTro: ndHtai.vTro, cccd: ndHtai.cccd})
+       goiMyChuHien('luuNhieuDgia', {mangDl: dc, vTro: ndHtai.vTro, mcb: ndHtai.mcb})
          .then(g => { hienTbao(g.tBao, g.tCong ? 'tc' : 'loi'); if(g.tCong) taiDlBdau(); else $("#vungTai").hide(); })
          .catch(le => { hienTbao(le, 'loi'); $("#vungTai").hide(); });
     }
