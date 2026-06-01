@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Quản trị Phân quyền - Trường TH&THCS Hợp Thành</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="ketnoi.js"></script>
+
+    <style>
+      body { font-family: 'Times New Roman', Times, serif; background-color: #f8f9fa; padding: 20px; }
+      .admin-card { background: white; border-radius: 8px; padding: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 4px solid #198754; }
+      .table-bordered th, .table-bordered td { vertical-align: middle; }
+      .badge-x { background-color: #0dcaf0; color: #000; padding: 5px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;}
+      .badge-xx { background-color: #198754; color: #fff; padding: 5px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;}
+      #loading { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:9999; justify-content:center; align-items:center; flex-direction:column; }
+    </style>
+  </head>
+  <body>
+    <div id="loading">
+       <div class="spinner-border text-success" style="width: 3rem; height: 3rem;"></div>
+       <div class="mt-3 fw-bold text-success">Đang đồng bộ dữ liệu...</div>
+    </div>
+
+    <div class="container max-w-4xl mx-auto">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+         <div>
+            <h4 class="mb-0 fw-bold text-success"><i class="bi bi-shield-lock"></i> QUẢN TRỊ PHÂN QUYỀN HỆ THỐNG</h4>
+            <small class="text-muted fst-italic">Bảng ánh xạ đồng bộ trực tiếp với danh mục DS_Quyen</small>
+         </div>
+         <button class="btn btn-outline-secondary btn-sm" onclick="window.location.href='index.html'"><i class="bi bi-arrow-return-left"></i> Quay lại phần mềm</button>
+      </div>
+
+      <div class="admin-card">
+         <div class="mb-3 text-end">
+            <button class="btn btn-success fw-bold px-4" onclick="moKhungThemMoi()"><i class="bi bi-person-plus-fill"></i> Thêm Cán Bộ</button>
+            <button class="btn btn-light ms-2 border" onclick="taiDuLieu()"><i class="bi bi-arrow-clockwise"></i> Tải lại</button>
+         </div>
+
+         <table class="table table-bordered table-hover text-center">
+            <thead class="table-light">
+               <tr>
+                  <th width="10%">STT Dòng</th>
+                  <th>Địa chỉ Email G-Mail</th>
+                  <th width="20%">Quyền hạn (Ký hiệu)</th>
+                  <th width="20%">Thao tác hành chính</th>
+               </tr>
+            </thead>
+            <tbody id="bangPhanQuyen">
+               </tbody>
+         </table>
+      </div>
+    </div>
+
+    <div class="modal fade" id="modalHanhChinh" data-bs-backdrop="static">
+       <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+             <div class="modal-header bg-success text-white py-2">
+                <h5 class="modal-title fw-bold" id="tieuDeModal">THÊM MỚI QUYỀN</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+             </div>
+             <div class="modal-body">
+                <form id="formHanhChinh">
+                   <input type="hidden" id="inpDongThamChieu" value="">
+                   <div class="mb-3">
+                      <label class="fw-bold small mb-1">Địa chỉ Email Google Workspace</label>
+                      <input type="email" class="form-control" id="inpEmail" placeholder="ví dụ: canbo@gmail.com" required>
+                   </div>
+                   <div class="mb-3">
+                      <label class="fw-bold small mb-1">Cấp độ phân quyền</label>
+                      <select class="form-select" id="inpQuyen">
+                         <option value="x">Chỉ tra cứu dữ liệu (x)</option>
+                         <option value="xx">Toàn quyền: Tra cứu & Tiếp nhận (xx)</option>
+                      </select>
+                   </div>
+                </form>
+             </div>
+             <div class="modal-footer py-1">
+                <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy bỏ</button>
+                <button class="btn btn-success btn-sm fw-bold" onclick="thucThiLuu()">LƯU HỒ SƠ</button>
+             </div>
+          </div>
+       </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+       // Kiểm tra xem đã có phiên đăng nhập từ index.html truyền qua chưa
+       window.HT_DINH_DANH_CB = sessionStorage.getItem("HT_DINH_DANH");
+
+       $(document).ready(function() {
+          if(!window.HT_DINH_DANH_CB) {
+             Swal.fire({ title: 'Cảnh báo', text: 'Vui lòng truy cập cổng tiếp nhận để xác thực định danh trước.', icon: 'warning', confirmButtonText: 'Đóng' }).then(() => {
+                window.location.href = 'index.html';
+             });
+          } else {
+             taiDuLieu();
+          }
+       });
+
+       function hienTai(trangThai) {
+          document.getElementById('loading').style.display = trangThai ? 'flex' : 'none';
+       }
+
+       function taiDuLieu() {
+          hienTai(true);
+          callServer('CQ_LayDanhSach', { dinhDanh: window.HT_DINH_DANH_CB })
+             .then(duLieu => {
+                hienTai(false);
+                var htmlRows = '';
+                duLieu.forEach(muc => {
+                   var huyHieu = muc.quyen === 'xx' ? '<span class="badge-xx">Toàn quyền (xx)</span>' : (muc.quyen === 'x' ? '<span class="badge-x">Chỉ xem (x)</span>' : '<span class="text-danger fw-bold">Khóa</span>');
+                   
+                   htmlRows += `<tr>
+                      <td>${muc.dong}</td>
+                      <td class="text-start fw-bold text-primary">${muc.email}</td>
+                      <td>${huyHieu}</td>
+                      <td>
+                         <button class="btn btn-sm btn-outline-primary px-3 py-0 me-1" onclick="moKhungCapNhat(${muc.dong}, '${muc.email}', '${muc.quyen}')">Sửa</button>
+                         <button class="btn btn-sm btn-outline-danger px-3 py-0" onclick="xoaQuyen(${muc.dong})">Xóa</button>
+                      </td>
+                   </tr>`;
+                });
+                document.getElementById('bangPhanQuyen').innerHTML = htmlRows;
+             })
+             .catch(loi => {
+                hienTai(false);
+                Swal.fire('Lỗi truy xuất', loi.message, 'error');
+             });
+       }
+
+       function moKhungThemMoi() {
+          document.getElementById('formHanhChinh').reset();
+          document.getElementById('inpDongThamChieu').value = ""; // Đánh dấu là Thêm mới
+          document.getElementById('tieuDeModal').innerText = "THÊM MỚI QUYỀN TRUY CẬP";
+          new bootstrap.Modal(document.getElementById('modalHanhChinh')).show();
+       }
+
+       function moKhungCapNhat(dong, email, quyen) {
+          document.getElementById('inpDongThamChieu').value = dong;
+          document.getElementById('inpEmail').value = email;
+          document.getElementById('inpQuyen').value = quyen;
+          document.getElementById('tieuDeModal').innerText = "CẬP NHẬT QUYỀN CÁN BỘ (Dòng " + dong + ")";
+          new bootstrap.Modal(document.getElementById('modalHanhChinh')).show();
+       }
+
+       function thucThiLuu() {
+          var dongDuLieu = document.getElementById('inpDongThamChieu').value;
+          var emailCap = document.getElementById('inpEmail').value.trim();
+          var quyenCap = document.getElementById('inpQuyen').value;
+
+          if(!emailCap) { Swal.fire('Thiếu thông tin', 'Vui lòng nhập định danh Email.', 'warning'); return; }
+
+          hienTai(true);
+          var tenYeuCau = dongDuLieu ? 'CQ_CapNhat' : 'CQ_ThemMoi';
+          var goiDuLieu = { dongDuLieu: dongDuLieu, emailCap: emailCap, quyenCap: quyenCap, dinhDanh: window.HT_DINH_DANH_CB };
+
+          callServer(tenYeuCau, goiDuLieu)
+             .then(ketQua => {
+                bootstrap.Modal.getInstance(document.getElementById('modalHanhChinh')).hide();
+                Swal.fire('Thành công', 'Đã lưu trữ hồ sơ ánh xạ.', 'success');
+                taiDuLieu();
+             })
+             .catch(loi => {
+                hienTai(false);
+                Swal.fire('Lỗi ghi sổ', loi.message, 'error');
+             });
+       }
+
+       function xoaQuyen(dong) {
+          Swal.fire({
+             title: 'Đồng chí có chắc chắn?',
+             text: 'Hành động này sẽ rút quyền truy cập của cán bộ khỏi hệ thống.',
+             icon: 'warning',
+             showCancelButton: true,
+             confirmButtonColor: '#d33',
+             cancelButtonColor: '#6c757d',
+             confirmButtonText: 'Đồng ý rút quyền',
+             cancelButtonText: 'Hủy'
+          }).then((result) => {
+             if (result.isConfirmed) {
+                hienTai(true);
+                callServer('CQ_Xoa', { dongDuLieu: dong, dinhDanh: window.HT_DINH_DANH_CB })
+                   .then(ketQua => {
+                      Swal.fire('Đã xóa', 'Rút quyền thành công.', 'success');
+                      taiDuLieu();
+                   })
+                   .catch(loi => {
+                      hienTai(false);
+                      Swal.fire('Lỗi xử lý', loi.message, 'error');
+                   });
+             }
+          });
+       }
+    </script>
+  </body>
+</html>
